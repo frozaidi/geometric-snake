@@ -112,7 +112,7 @@ end
 %     open(myVideo)
 
 
-ax = create_axes(317);
+ax = create_axes(1);
 view(ax,3);
 xlabel('X')
 ylabel('Y')
