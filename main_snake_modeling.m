@@ -7,9 +7,9 @@
 %%% Set up input variables
 % TODO: Find better phrasing for each variable comment
 clear;clc;
-theta = linspace(0,2*pi,400);       % Vector of times?
+theta = linspace(0,6*pi,400);       % Vector of times?
 dt = diff(theta);                   % Time step
-a1 = 1*cos(theta);                  % Actuator 1
+a1 = 1*sin(theta);                  % Actuator 1
 a2 = 1*sin(theta);                  % Actuator 2
 da1 = -sin(theta)*dt(1);            % Actuator 1 time derivative
 da2 = cos(theta)*dt(1);             % Actuator 2 time derivative
@@ -73,12 +73,8 @@ for i=2:numel(a1)
     % Note: this might not be correct, still trying to figure it out
     % At some point the transformation into the world frame might mess
     % up the actual calculation
-    q_movement{i} = q_movement{i}*q_movement{i-1};
+    q_movement{i} = q_movement{i-1}*q_movement{i};
 %     q_movement{i} = q_movement{1};
-%     q_movement{i} = [1,0,0,0;
-%                      0,1,0,0;
-%                      0,0,1,0;
-%                      0,0,0,1];
                         
     
     % Calculate the vectors to plot on the ground contacts
@@ -104,30 +100,41 @@ for i=2:numel(a1)
 end
 
 % Create a plot of the snake body
+% NOTE: snake_plotter still a work in progress
 % ax = snake_plotter(endpoints_leveled,shape_vec{1},pos_vec{1},residual_vec{1});
 
-% myVideo = VideoWriter('q_test_rotate_y','MPEG-4'); %open video file
-%     myVideo.FrameRate = 30;  %can adjust this, 5 - 10 works well for me
-%     myVideo.Quality = 100;
-%     open(myVideo)
+record_anim = input("Record animation? (y/n) ",'s');
+if record_anim == "y"
+    filename = input("Enter filename: ",'s');
+    path = cd;
+    path = fullfile(path,'animations',filename);
+    myVideo = VideoWriter(path,'MPEG-4'); %open video file
+    myVideo.FrameRate = 30;  %can adjust this, 5 - 10 works well for me
+    myVideo.Quality = 100;
+    open(myVideo)
+end
 
 
 ax = create_axes(1);
 view(ax,3);
+l = line(x_leveled_time{1},y_leveled_time{1},z_leveled_time{1});
 xlabel('X')
 ylabel('Y')
 zlabel('Z')
-l = line(x_leveled_time{1},y_leveled_time{1},z_leveled_time{1});
+axis equal
+xlim([min(min(cell2mat(x_leveled_time))) max(max(cell2mat(x_leveled_time)))])
+ylim([min(min(cell2mat(y_leveled_time))) max(max(cell2mat(y_leveled_time)))])
+zlim([min(min(cell2mat(z_leveled_time))) max(max(cell2mat(z_leveled_time)))])
 for i = 1:length(find(~cellfun(@isempty,z_leveled_time')))
     set(l,'Xdata',x_leveled_time{i},'Ydata',y_leveled_time{i},...
     'Zdata',z_leveled_time{i});
-    xlim([min(min(cell2mat(x_leveled_time))) max(max(cell2mat(x_leveled_time)))])
-    ylim([min(min(cell2mat(y_leveled_time))) max(max(cell2mat(y_leveled_time)))])
-    zlim([min(min(cell2mat(z_leveled_time))) max(max(cell2mat(z_leveled_time)))])
-%     axis equal
     drawnow
-    pause(0.1)
-%     frame = getframe(gcf);
-%     writeVideo(myVideo,frame);
+    if record_anim == "y"
+        frame = getframe(gcf);
+        writeVideo(myVideo,frame);
+    end
 end
-% close(myVideo)
+
+if record_anim == "y"
+    close(myVideo)
+end
