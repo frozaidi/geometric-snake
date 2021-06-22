@@ -50,7 +50,7 @@ function [g_circ_tail,q_g_circ,pos_pfaffian,shape_pfaffian] = body_jacobian(grou
         % Set up the cell array for the J_p_alpha calculation
         J_p_alpha{i} = zeros(3,numel(rotations_in_frame)*2);
         
-        % Calculate J_p_alpa through the cross product of omega and r for
+        % Calculate J_p_alpha through the cross product of omega and r for
         % each axis (pitch and yaw)
         for i2 = 1:ground_contact_idx(i)
             J_p_alpha{i}(:,(i2*2)-1:(i2*2)) = [cross(rotations_in_frame{i2}(:,2),v_diff{i}(:,i2)),...
@@ -71,14 +71,14 @@ function [g_circ_tail,q_g_circ,pos_pfaffian,shape_pfaffian] = body_jacobian(grou
     
     % Calculate g_circ
 %     g_circ_tail = -lsqminnorm(J_p_g_stacked,J_p_a_stacked)*a_dot;
-    g_circ_tail = [1;0;0;0;0;0];
+    g_circ_tail = [0;0;0;1;0;0];
     
     % From g_circ (Lie algebra element) convert to q_g_circ (SE3 element)
     % Sort out the rotational components for more readable code
     
-    rotation = [0 g_circ_tail(6) g_circ_tail(5);
-                g_circ_tail(6) 0 -g_circ_tail(4);
-                -g_circ_tail(5) g_circ_tail(4) 0];
+    rotation = [0 g_circ_tail(6) -g_circ_tail(5);
+                -g_circ_tail(6) 0 g_circ_tail(4);
+                g_circ_tail(5) -g_circ_tail(4) 0];
     
     %Combine the rotational component with the translational component
     
@@ -91,7 +91,7 @@ function [g_circ_tail,q_g_circ,pos_pfaffian,shape_pfaffian] = body_jacobian(grou
     
     % Normalize the rotational component of the SE3 element
     % TODO: determine if this is necessary???
-    q_g_circ(1:3,1:3) = q_rotation*q_g_circ(1:3,1:3)/norm(q_g_circ(1:3,1:3));
+    q_g_circ(1:3,1:3) = q_g_circ(1:3,1:3)/norm(q_g_circ(1:3,1:3));
     
     % Obtain the position component of the constraint pfaffian
     pos_pfaffian = q_rotation*reshape(J_p_g_stacked*g_circ_tail,3,[]);
